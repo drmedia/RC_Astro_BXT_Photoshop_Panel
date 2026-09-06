@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RC-Astro BlurXTerminator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="panel">
+  <div class="header">
+    <div>
+      <div class="title">BlurXTerminator</div>
+      <div class="sub">RC-Astro Stand-alone · Photoshop</div>
+    </div>
+    <button id="settingsButton" class="settings-button" type="button" aria-label="설정" aria-controls="settingsCard" aria-expanded="false" title="설정"><span aria-hidden="true">⚙</span></button>
+  </div>
+
+  <div id="settingsCard" class="card settings-card hidden">
+    <div class="row between settings-header">
+      <div class="section-title">설정</div>
+      <button id="closeSettings" class="settings-close" type="button" aria-label="설정 닫기" title="닫기">×</button>
+    </div>
+
+    <div class="setting-label">RC-Astro 실행 파일</div>
+    <div class="path-row">
+      <input id="exePath" type="text" value="rc-astro" spellcheck="false">
+      <button id="browsePath" class="small-btn" type="button">찾기</button>
+      <button id="savePath" class="small-btn" type="button">저장</button>
+    </div>
+    <input id="exeFilePicker" class="hidden" type="file" accept=".exe">
+    <div id="exeStatus" class="preflight-status checking">RC-Astro CLI를 확인하고 있습니다.</div>
+    <div class="hint">PATH에 등록된 실행 파일 또는 전체 경로를 입력하세요.</div>
+
+    <div class="settings-divider"></div>
+
+    <div class="row between">
+      <div>
+        <div class="setting-label temp-title">임시 TIFF</div>
+        <div id="tempStatus" class="temp-summary">확인 중…</div>
+      </div>
+      <button id="cleanupTempBtn" class="small-btn" type="button">지금 정리</button>
+    </div>
+    <div class="hint">다른 실행을 보호하기 위해 최근 10분 이내 파일은 제외합니다.</div>
+  </div>
+
+  <div id="mainContent">
+  <div class="card scope-card">
+    <div class="section-title">처리 범위</div>
+    <div class="segmented scope-grid">
+      <label data-description="현재 보이는 모든 레이어를 임시로 합성해 처리합니다. 원본 레이어는 병합되지 않습니다." title="현재 보이는 모든 레이어를 합성해 처리합니다.">
+        <input type="radio" name="scope" value="document">
+        <span>보이는 레이어</span>
+      </label>
+      <label data-description="현재 선택한 레이어만 전체 프레임 크기로 처리합니다." title="현재 선택한 레이어만 처리합니다.">
+        <input type="radio" name="scope" value="layer" checked>
+        <span>현재 레이어</span>
+      </label>
+      <label data-description="전체 합성을 처리한 뒤 선택 영역 또는 현재 레이어 마스크를 결과에 적용합니다." title="선택 영역 또는 현재 레이어 마스크로 적용 범위를 지정합니다.">
+        <input type="radio" name="scope" value="sky">
+        <span>지정 영역</span>
+      </label>
+    </div>
+    <div id="targetStatus" class="preflight-status scope-hint">현재 선택한 레이어만 전체 프레임 크기로 처리합니다.</div>
+  </div>
+
+  <button id="detailsToggle" class="details-toggle" type="button" aria-controls="detailsPanel" aria-expanded="false">
+    <span id="detailsToggleText">세부 설정 보기</span>
+    <span id="detailsChevron" aria-hidden="true">▾</span>
+  </button>
+
+  <div id="detailsPanel" class="card details-card hidden">
+    <div class="row between">
+      <label class="section-title strength-title" for="strength">Strength</label>
+      <div id="strengthValue" class="value big">0.30</div>
+    </div>
+    <input id="strength" type="range" min="0" max="1" step="0.01" value="0.30">
+    <div class="ticks"><span>0</span><span>0.5</span><span>1.0</span></div>
+
+    <div class="details-divider"></div>
+
+    <div class="row between advanced-title">
+      <div class="section-title">세부 조정</div>
+      <label class="switch-line">
+        <input id="linkStrength" type="checkbox" checked>
+        <span>Strength 연동</span>
+      </label>
+    </div>
+
+    <div class="control">
+      <div class="row between">
+        <label>Sharpen Stars</label>
+        <span id="starsValue">0.30</span>
+      </div>
+      <input id="stars" type="range" min="0" max="0.7" step="0.01" value="0.30">
+    </div>
+
+    <div class="control">
+      <div class="row between">
+        <label>Sharpen Nonstellar</label>
+        <span id="nonstellarValue">0.30</span>
+      </div>
+      <input id="nonstellar" type="range" min="0" max="1" step="0.01" value="0.30">
+    </div>
+
+    <div class="control">
+      <div class="row between">
+        <label>Adjust Star Halos</label>
+        <span id="halosValue">0.00</span>
+      </div>
+      <input id="halos" type="range" min="-0.5" max="0.5" step="0.01" value="0">
+    </div>
+
+    <div class="details-divider"></div>
+
+    <div class="row between advanced-title">
+      <div class="section-title">처리 모드</div>
+      <label class="switch-line mode-switch">
+        <input id="planetaryMode" type="checkbox">
+        <span>Lunar / Planetary</span>
+      </label>
+    </div>
+    <div class="hint mode-hint">
+      달·행성 이미지용 ML5 모드입니다. 별 선명화와 할로 조정은 사용하지 않습니다.
+    </div>
+
+    <div id="psfControl" class="control mode-control disabled-control">
+      <div class="row between">
+        <label>PSF Diameter</label>
+        <span><span id="psfDiameterValue">2.0</span> px</span>
+      </div>
+      <input id="psfDiameter" type="range" min="0.1" max="8" step="0.1" value="2.0" disabled>
+      <div class="hint">동일한 광학계에서 측정되는 별의 FWHM 값을 입력하세요.</div>
+    </div>
+  </div>
+
+  <button id="runBtn" class="run-btn">
+    <span id="runIcon">✦</span>
+    <span id="runText">BlurXTerminator 실행</span>
+  </button>
+  <button id="cancelBtn" class="cancel-btn hidden" type="button" disabled>처리 취소</button>
+
+  <div id="progressWrap" class="progress-wrap hidden">
+    <div class="progress"><div id="progressBar"></div></div>
+    <div id="status" class="status">준비 중…</div>
+  </div>
+
+  <div id="message" class="message"></div>
+
+  <div class="footer">
+    <div>선형(linear / unstretched) 이미지에서 사용하는 것을 권장합니다.</div>
+    <div id="panelVersion" class="panel-version">v0.9.0</div>
+  </div>
+  </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>

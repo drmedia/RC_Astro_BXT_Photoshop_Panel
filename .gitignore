@@ -1,0 +1,18 @@
+# Operating system and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local dependencies and logs
+node_modules/
+*.log
+
+# Generated packages
+*.zip
+
+# Photoshop integration-test artifacts
+tests/BXT_Integration_Temp.tif
+tests/Photoshop_Integration_Result.txt
+bxt_input_*.tif
+bxt_output_*.tif

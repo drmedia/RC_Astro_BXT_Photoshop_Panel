@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ExtensionManifest Version="7.0"
+    ExtensionBundleId="com.drmedia.rcastrobxt"
+    ExtensionBundleVersion="0.9.0"
+    ExtensionBundleName="RC-Astro BXT Panel"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <ExtensionList>
+        <Extension Id="com.drmedia.rcastrobxt.panel"/>
+    </ExtensionList>
+
+    <ExecutionEnvironment>
+        <HostList>
+            <Host Name="PHXS" Version="[20.0,99.9]"/>
+        </HostList>
+        <LocaleList>
+            <Locale Code="All"/>
+        </LocaleList>
+        <RequiredRuntimeList>
+            <RequiredRuntime Name="CSXS" Version="6.0"/>
+        </RequiredRuntimeList>
+    </ExecutionEnvironment>
+
+    <DispatchInfoList>
+        <Extension Id="com.drmedia.rcastrobxt.panel">
+            <DispatchInfo>
+                <Resources>
+                    <MainPath>./client/index.html</MainPath>
+                    <ScriptPath>./host/host.jsx</ScriptPath>
+                    <CEFCommandLine>
+                        <Parameter>--enable-nodejs</Parameter>
+                        <Parameter>--mixed-context</Parameter>
+                        <Parameter>--allow-file-access</Parameter>
+                    </CEFCommandLine>
+                </Resources>
+                <Lifecycle>
+                    <AutoVisible>true</AutoVisible>
+                </Lifecycle>
+                <UI>
+                    <Type>Panel</Type>
+                    <Menu>RC-Astro BlurXTerminator</Menu>
+                    <Geometry>
+                        <Size>
+                            <Width>330</Width>
+                            <Height>730</Height>
+                        </Size>
+                        <MinSize>
+                            <Width>300</Width>
+                            <Height>420</Height>
+                        </MinSize>
+                        <MaxSize>
+                            <Width>900</Width>
+                            <Height>1200</Height>
+                        </MaxSize>
+                    </Geometry>
+                </UI>
+            </DispatchInfo>
+        </Extension>
+    </DispatchInfoList>
+</ExtensionManifest>
