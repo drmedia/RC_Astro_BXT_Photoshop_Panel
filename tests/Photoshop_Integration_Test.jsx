@@ -129,6 +129,48 @@
             assertTrue(BXT_validateScope("layer").indexOf("ERR|") === 0, "비픽셀 레이어가 허용되었습니다.");
         });
 
+        test("처리 범위 상태 카드 정보 생성", function () {
+            var document = makeRgb("BXT_SCOPE_INFO", BitsPerChannelType.EIGHT);
+            app.activeDocument = document;
+
+            var layerInfo = BXT_scopeInfo("layer");
+            assertTrue(layerInfo.indexOf("OK|현재 선택한 픽셀 레이어|사용 가능|success|") === 0,
+                "현재 레이어 상태 정보가 올바르지 않습니다: " + layerInfo);
+            assertTrue(layerInfo.indexOf("|적용 안 함|마스크 없음|neutral|") >= 0,
+                "현재 레이어의 마스크 정보가 올바르지 않습니다: " + layerInfo);
+
+            var automaticLayerInfo = BXT_scopeInfo("auto");
+            assertTrue(automaticLayerInfo === layerInfo,
+                "전체 프레임 픽셀 레이어가 자동 선택되지 않았습니다: " + automaticLayerInfo);
+
+            var documentInfo = BXT_scopeInfo("document");
+            assertTrue(documentInfo.indexOf("OK|현재 보이는 레이어 합성|사용 가능|success|") === 0,
+                "전체 문서 상태 정보가 올바르지 않습니다: " + documentInfo);
+
+            var skyMissingInfo = BXT_scopeInfo("sky");
+            assertTrue(skyMissingInfo.indexOf("ERR|현재 보이는 레이어 합성|사용 가능|success|") === 0,
+                "영역 없는 지정 영역 상태 정보가 올바르지 않습니다: " + skyMissingInfo);
+            assertTrue(skyMissingInfo.indexOf("|지정 영역 없음|사용 불가|error|") >= 0,
+                "영역 누락 상태가 표시되지 않습니다: " + skyMissingInfo);
+
+            document.selection.select([[0, 0], [16, 0], [16, 32], [0, 32]]);
+            var skySelectionInfo = BXT_scopeInfo("sky");
+            assertTrue(skySelectionInfo.indexOf("OK|") === 0,
+                "선택 영역 상태가 사용 가능으로 표시되지 않습니다: " + skySelectionInfo);
+            assertTrue(skySelectionInfo.indexOf("|선택 영역 적용|선택 영역|success|") >= 0,
+                "선택 영역 마스크 정보가 올바르지 않습니다: " + skySelectionInfo);
+            assertTrue(BXT_scopeInfo("auto") === skySelectionInfo,
+                "선택 영역 지정 처리가 자동 선택되지 않았습니다: " + BXT_scopeInfo("auto"));
+            document.selection.deselect();
+
+            var textLayer = document.artLayers.add();
+            textLayer.kind = LayerKind.TEXT;
+            document.activeLayer = textLayer;
+            var unsupportedLayerInfo = BXT_scopeInfo("auto");
+            assertTrue(unsupportedLayerInfo.indexOf("ERR|현재 선택한 레이어|사용 불가|error|") === 0,
+                "지원하지 않는 레이어가 사용 불가로 표시되지 않았습니다: " + unsupportedLayerInfo);
+        });
+
         test("현재 레이어를 표시/숨기기 명령 없이 격리하여 내보내기", function () {
             try { if (tempTiff.exists) tempTiff.remove(); } catch (_) {}
             var document = makeRgb("BXT_LAYER_EXPORT", BitsPerChannelType.EIGHT);
@@ -144,7 +186,7 @@
             app.activeDocument = document;
 
             var originalLayerCount = document.layers.length;
-            var exportResult = BXT_exportInput(tempTiff.fsName, "layer");
+            var exportResult = BXT_exportInput(tempTiff.fsName, "auto");
             assertTrue(exportResult.indexOf("OK|") === 0, "현재 레이어 TIFF 내보내기 실패: " + exportResult);
             assertTrue(tempTiff.exists && tempTiff.length > 0, "현재 레이어 TIFF가 생성되지 않았습니다.");
             assertTrue(document.layers.length === originalLayerCount, "원본 문서의 레이어 구조가 변경되었습니다.");
@@ -219,7 +261,7 @@
             target.selection.select([[0, 0], [16, 0], [16, 32], [0, 32]]);
             app.activeDocument = target;
 
-            var exportResult = BXT_exportInput(tempTiff.fsName, "sky");
+            var exportResult = BXT_exportInput(tempTiff.fsName, "auto");
             var maskToken = exportMaskToken(exportResult);
             assertTrue(exportResult.indexOf("OK|") === 0, "하늘 선택 영역 내보내기 실패: " + exportResult);
             assertTrue(maskToken.indexOf("S:") === 0, "선택 영역 토큰이 아닙니다: " + maskToken);
@@ -241,7 +283,12 @@
             BXT_addRevealSelectionMask();
             target.selection.deselect();
 
-            var exportResult = BXT_exportInput(tempTiff.fsName, "sky");
+            var scopeInfo = BXT_scopeInfo("auto");
+            assertTrue(scopeInfo.indexOf("OK|") === 0, "레이어 마스크 상태가 사용 가능으로 표시되지 않습니다: " + scopeInfo);
+            assertTrue(scopeInfo.indexOf("|현재 레이어 마스크 적용|레이어 마스크|success|") >= 0,
+                "레이어 마스크 상태 정보가 올바르지 않습니다: " + scopeInfo);
+
+            var exportResult = BXT_exportInput(tempTiff.fsName, "auto");
             var maskToken = exportMaskToken(exportResult);
             assertTrue(exportResult.indexOf("OK|") === 0, "레이어 마스크 내보내기 실패: " + exportResult);
             assertTrue(maskToken.indexOf("M:") === 0, "레이어 마스크 토큰이 아닙니다: " + maskToken);

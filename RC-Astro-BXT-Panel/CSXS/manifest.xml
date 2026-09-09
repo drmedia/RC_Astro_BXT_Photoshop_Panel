@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ExtensionManifest Version="7.0"
     ExtensionBundleId="com.drmedia.rcastrobxt"
-    ExtensionBundleVersion="0.9.0"
+    ExtensionBundleVersion="0.9.1"
     ExtensionBundleName="RC-Astro BXT Panel"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 

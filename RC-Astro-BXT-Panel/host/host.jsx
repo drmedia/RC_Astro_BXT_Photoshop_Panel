@@ -153,10 +153,22 @@ function BXT_layerCoversDocument(layer, document) {
     }
 }
 
+function BXT_resolveScope() {
+    if (app.documents.length === 0) return "layer";
+
+    try {
+        var document = app.activeDocument;
+        if (BXT_hasSelection(document) || BXT_activeLayerHasMask()) return "sky";
+    } catch (_) {}
+
+    return "layer";
+}
+
 function BXT_validateScope(scope) {
     if (app.documents.length === 0) return "ERR|Photoshop 문서를 먼저 여세요.";
 
     try {
+        if (scope === "auto") scope = BXT_resolveScope();
         var document = app.activeDocument;
         if (scope === "layer") {
             var layer = document.activeLayer;
@@ -180,6 +192,94 @@ function BXT_validateScope(scope) {
         return "OK";
     } catch (e) {
         return "ERR|처리 범위 확인 실패: " + e.message + " (line " + e.line + ")";
+    }
+}
+
+function BXT_scopeInfo(scope) {
+    var targetTitle = "Photoshop 문서 없음";
+    var targetBadge = "사용 불가";
+    var targetTone = "error";
+    var targetDescription = "처리할 Photoshop 문서를 먼저 여세요.";
+    var maskTitle = "적용 안 함";
+    var maskBadge = "확인 불가";
+    var maskTone = "neutral";
+    var maskDescription = "문서를 연 후 결과 마스크 상태를 확인합니다.";
+    var valid = false;
+
+    if (app.documents.length === 0) {
+        return [
+            "ERR", targetTitle, targetBadge, targetTone, targetDescription,
+            maskTitle, maskBadge, maskTone, maskDescription
+        ].join("|");
+    }
+
+    try {
+        if (scope === "auto") scope = BXT_resolveScope();
+        var document = app.activeDocument;
+        var validation = BXT_validateScope(scope);
+        valid = validation === "OK";
+
+        if (scope === "document") {
+            targetTitle = "현재 보이는 레이어 합성";
+            targetDescription = "보이는 모든 레이어를 임시로 합성해 처리합니다. 원본 레이어는 유지됩니다.";
+            maskBadge = "마스크 없음";
+            maskDescription = "마스크 없이 전체 프레임 결과 레이어를 생성합니다.";
+        } else if (scope === "layer") {
+            var layer = document.activeLayer;
+            if (layer && layer.typename === "ArtLayer" && layer.kind === LayerKind.SMARTOBJECT) {
+                targetTitle = "현재 선택한 스마트 오브젝트";
+            } else if (layer && layer.typename === "ArtLayer" && layer.kind === LayerKind.NORMAL) {
+                targetTitle = "현재 선택한 픽셀 레이어";
+            } else {
+                targetTitle = "현재 선택한 레이어";
+            }
+            targetDescription = valid
+                ? "현재 레이어의 픽셀만 입력 이미지로 처리합니다."
+                : String(validation).replace(/^ERR\|/, "");
+            maskBadge = "마스크 없음";
+            maskDescription = "마스크 없이 전체 프레임 결과 레이어를 생성합니다.";
+        } else if (scope === "sky") {
+            targetTitle = "현재 보이는 레이어 합성";
+            targetDescription = "전체 합성을 BXT 처리한 뒤 지정한 영역만 결과에 표시합니다.";
+
+            if (BXT_hasSelection(document)) {
+                maskTitle = "선택 영역 적용";
+                maskBadge = "선택 영역";
+                maskTone = "success";
+                maskDescription = "현재 Photoshop 선택 영역을 결과 레이어 마스크로 적용합니다.";
+            } else if (BXT_activeLayerHasMask()) {
+                maskTitle = "현재 레이어 마스크 적용";
+                maskBadge = "레이어 마스크";
+                maskTone = "success";
+                maskDescription = "현재 레이어의 마스크를 결과 레이어 마스크로 복사합니다.";
+            } else {
+                maskTitle = "지정 영역 없음";
+                maskBadge = "사용 불가";
+                maskTone = "error";
+                maskDescription = "선택 영역을 만들거나 마스크가 있는 레이어를 선택하세요.";
+            }
+        } else {
+            targetTitle = "알 수 없는 처리 범위";
+            targetDescription = "처리 범위를 다시 선택하세요.";
+            maskBadge = "확인 불가";
+        }
+
+        targetBadge = valid || scope === "sky" ? "사용 가능" : "사용 불가";
+        targetTone = valid || scope === "sky" ? "success" : "error";
+        if (scope !== "sky") maskTone = "neutral";
+
+        return [
+            valid ? "OK" : "ERR",
+            targetTitle, targetBadge, targetTone, targetDescription,
+            maskTitle, maskBadge, maskTone, maskDescription
+        ].join("|");
+    } catch (e) {
+        return [
+            "ERR", "상태 확인 실패", "사용 불가", "error",
+            e.message + " (line " + e.line + ")",
+            "적용 안 함", "확인 불가", "neutral",
+            "Photoshop 상태를 다시 확인하세요."
+        ].join("|");
     }
 }
 
@@ -340,6 +440,8 @@ function BXT_keepOnlyTargetLayer(container, target) {
 
 function BXT_exportInput(outPath, scope) {
     if (app.documents.length === 0) return "ERR|열려 있는 문서가 없습니다.";
+
+    if (scope === "auto") scope = BXT_resolveScope();
 
     var original = app.activeDocument;
     var originalName = original.name;

@@ -15,10 +15,18 @@
   var stars = document.getElementById("stars");
   var nonstellar = document.getElementById("nonstellar");
   var halos = document.getElementById("halos");
+  var strengthValue = document.getElementById("strengthValue");
+  var starsValue = document.getElementById("starsValue");
+  var nonstellarValue = document.getElementById("nonstellarValue");
+  var halosValue = document.getElementById("halosValue");
   var linkStrength = document.getElementById("linkStrength");
+  var generalMode = document.getElementById("generalMode");
   var planetaryMode = document.getElementById("planetaryMode");
   var psfDiameter = document.getElementById("psfDiameter");
+  var psfDiameterValue = document.getElementById("psfDiameterValue");
   var psfControl = document.getElementById("psfControl");
+  var strengthControl = document.getElementById("strengthControl");
+  var resetDetails = document.getElementById("resetDetails");
   var exePath = document.getElementById("exePath");
   var runBtn = document.getElementById("runBtn");
   var cancelBtn = document.getElementById("cancelBtn");
@@ -27,11 +35,19 @@
   var settingsButton = document.getElementById("settingsButton");
   var settingsCard = document.getElementById("settingsCard");
   var closeSettings = document.getElementById("closeSettings");
+  var helpButton = document.getElementById("helpButton");
+  var helpCard = document.getElementById("helpCard");
+  var closeHelp = document.getElementById("closeHelp");
   var mainContent = document.getElementById("mainContent");
   var browsePath = document.getElementById("browsePath");
   var exeFilePicker = document.getElementById("exeFilePicker");
   var exeStatus = document.getElementById("exeStatus");
-  var targetStatus = document.getElementById("targetStatus");
+  var scopeTargetTitle = document.getElementById("scopeTargetTitle");
+  var scopeTargetBadge = document.getElementById("scopeTargetBadge");
+  var scopeTargetDescription = document.getElementById("scopeTargetDescription");
+  var scopeMaskTitle = document.getElementById("scopeMaskTitle");
+  var scopeMaskBadge = document.getElementById("scopeMaskBadge");
+  var scopeMaskDescription = document.getElementById("scopeMaskDescription");
   var detailsToggle = document.getElementById("detailsToggle");
   var detailsPanel = document.getElementById("detailsPanel");
   var detailsToggleText = document.getElementById("detailsToggleText");
@@ -45,6 +61,7 @@
   var activeRunDocumentId = "";
   var activeRunMaskToken = "";
   var cancelRequested = false;
+  var scopeStatusToken = 0;
 
   function showPanelVersion() {
     var versionElement = document.getElementById("panelVersion");
@@ -64,10 +81,18 @@
 
   showPanelVersion();
 
-  function v(id, n) { document.getElementById(id).textContent = Number(n).toFixed(2); }
-  function v1(id, n) { document.getElementById(id).textContent = Number(n).toFixed(1); }
+  function v(id, n) { document.getElementById(id).value = Number(n).toFixed(2); }
+  function v1(id, n) { document.getElementById(id).value = Number(n).toFixed(1); }
 
-  strength.addEventListener("input", function () {
+  function setRangeFromNumber(range, numberInput, digits) {
+    var value = Number(numberInput.value);
+    if (!isFinite(value)) value = Number(range.value);
+    value = Math.max(Number(range.min), Math.min(Number(range.max), value));
+    range.value = value;
+    numberInput.value = value.toFixed(digits);
+  }
+
+  function updateStrengthValues() {
     v("strengthValue", strength.value);
     if (linkStrength.checked) {
       stars.value = strength.value;
@@ -75,33 +100,109 @@
       v("starsValue", stars.value);
       v("nonstellarValue", nonstellar.value);
     }
-  });
+  }
+
+  strength.addEventListener("input", updateStrengthValues);
   stars.addEventListener("input", function () { v("starsValue", stars.value); });
   nonstellar.addEventListener("input", function () { v("nonstellarValue", nonstellar.value); });
   halos.addEventListener("input", function () { v("halosValue", halos.value); });
   psfDiameter.addEventListener("input", function () { v1("psfDiameterValue", psfDiameter.value); });
 
-  function updateModeControls() {
-    var planetary = planetaryMode.checked;
-    stars.disabled = planetary;
-    halos.disabled = planetary;
-    psfDiameter.disabled = !planetary;
-    psfControl.className = planetary ? "control mode-control" : "control mode-control disabled-control";
-  }
+  strengthValue.addEventListener("change", function () {
+    setRangeFromNumber(strength, strengthValue, 2);
+    updateStrengthValues();
+  });
+  starsValue.addEventListener("change", function () {
+    setRangeFromNumber(stars, starsValue, 2);
+  });
+  nonstellarValue.addEventListener("change", function () {
+    setRangeFromNumber(nonstellar, nonstellarValue, 2);
+  });
+  halosValue.addEventListener("change", function () {
+    setRangeFromNumber(halos, halosValue, 2);
+  });
+  psfDiameterValue.addEventListener("change", function () {
+    setRangeFromNumber(psfDiameter, psfDiameterValue, 1);
+  });
 
-  planetaryMode.addEventListener("change", updateModeControls);
-  updateModeControls();
-
-  function setSettingsOpen(open) {
-    settingsCard.classList.toggle("hidden", !open);
-    mainContent.classList.toggle("hidden", open);
-    settingsButton.classList.toggle("is-open", open);
-    settingsButton.setAttribute("aria-expanded", open ? "true" : "false");
-    if (open) {
-      validateExecutable();
-      window.setTimeout(function () { exePath.focus(); }, 0);
+  function showModeElements(className, visible) {
+    var elements = document.querySelectorAll("." + className);
+    for (var i = 0; i < elements.length; i++) {
+      elements[i].classList.toggle("hidden", !visible);
     }
   }
+
+  function updateModeControls() {
+    var planetary = planetaryMode.checked;
+    var linked = linkStrength.checked && !planetary;
+
+    if (linked) updateStrengthValues();
+
+    showModeElements("general-mode-only", !planetary);
+    showModeElements("planetary-mode-only", planetary);
+    strength.disabled = planetary || !linked;
+    strengthValue.disabled = planetary || !linked;
+    stars.disabled = planetary || linked;
+    starsValue.disabled = planetary || linked;
+    nonstellar.disabled = linked;
+    nonstellarValue.disabled = linked;
+    halos.disabled = planetary;
+    halosValue.disabled = planetary;
+    psfDiameter.disabled = !planetary;
+    psfDiameterValue.disabled = !planetary;
+    strengthControl.classList.toggle("disabled-control", !linked);
+    stars.parentNode.classList.toggle("disabled-control", linked);
+    nonstellar.parentNode.classList.toggle("disabled-control", linked);
+  }
+
+  generalMode.addEventListener("change", updateModeControls);
+  planetaryMode.addEventListener("change", updateModeControls);
+  linkStrength.addEventListener("change", function () {
+    if (linkStrength.checked) updateStrengthValues();
+    updateModeControls();
+  });
+  resetDetails.addEventListener("click", function () {
+    generalMode.checked = true;
+    planetaryMode.checked = false;
+    linkStrength.checked = true;
+    strength.value = "0.30";
+    stars.value = "0.30";
+    nonstellar.value = "0.30";
+    halos.value = "0";
+    psfDiameter.value = "2.0";
+    v("strengthValue", strength.value);
+    v("starsValue", stars.value);
+    v("nonstellarValue", nonstellar.value);
+    v("halosValue", halos.value);
+    v1("psfDiameterValue", psfDiameter.value);
+    updateModeControls();
+  });
+  updateModeControls();
+
+  function setPanelView(view) {
+    var settingsOpen = view === "settings";
+    var helpOpen = view === "help";
+
+    settingsCard.classList.toggle("hidden", !settingsOpen);
+    helpCard.classList.toggle("hidden", !helpOpen);
+    mainContent.classList.toggle("hidden", settingsOpen || helpOpen);
+    settingsButton.classList.toggle("is-open", settingsOpen);
+    helpButton.classList.toggle("is-open", helpOpen);
+    settingsButton.setAttribute("aria-expanded", settingsOpen ? "true" : "false");
+    helpButton.setAttribute("aria-expanded", helpOpen ? "true" : "false");
+
+    if (settingsOpen) {
+      validateExecutable();
+      window.setTimeout(function () { exePath.focus(); }, 0);
+    } else if (helpOpen) {
+      window.setTimeout(function () { closeHelp.focus(); }, 0);
+    } else {
+      refreshScopeStatus();
+    }
+  }
+
+  function setSettingsOpen(open) { setPanelView(open ? "settings" : "main"); }
+  function setHelpOpen(open) { setPanelView(open ? "help" : "main"); }
 
   function setDetailsOpen(open) {
     detailsPanel.classList.toggle("hidden", !open);
@@ -221,6 +322,25 @@
     setSettingsOpen(settingsCard.className.indexOf("hidden") >= 0);
   });
   closeSettings.addEventListener("click", function () { setSettingsOpen(false); });
+  helpButton.addEventListener("click", function () {
+    setHelpOpen(helpCard.className.indexOf("hidden") >= 0);
+  });
+  closeHelp.addEventListener("click", function () { setHelpOpen(false); });
+
+  var helpAccordions = document.querySelectorAll(".help-accordion");
+  for (var helpIndex = 0; helpIndex < helpAccordions.length; helpIndex++) {
+    (function (button) {
+      button.addEventListener("click", function () {
+        var answer = document.getElementById(button.getAttribute("aria-controls"));
+        var open = button.getAttribute("aria-expanded") === "true";
+        var chevron = button.querySelector(".help-chevron");
+        button.setAttribute("aria-expanded", open ? "false" : "true");
+        answer.classList.toggle("hidden", open);
+        chevron.textContent = open ? "▾" : "▴";
+      });
+    }(helpAccordions[helpIndex]));
+  }
+
   detailsToggle.addEventListener("click", function () {
     setDetailsOpen(detailsPanel.className.indexOf("hidden") >= 0);
   });
@@ -236,9 +356,9 @@
     }
   });
   document.addEventListener("keydown", function (event) {
-    if ((event.key === "Escape" || event.keyCode === 27) && settingsCard.className.indexOf("hidden") < 0) {
-      setSettingsOpen(false);
-    }
+    if (event.key !== "Escape" && event.keyCode !== 27) return;
+    if (settingsCard.className.indexOf("hidden") < 0) setSettingsOpen(false);
+    else if (helpCard.className.indexOf("hidden") < 0) setHelpOpen(false);
   });
 
   try {
@@ -261,37 +381,58 @@
   }
 
   function scopeValue() {
-    var els = document.querySelectorAll('input[name="scope"]');
-    for (var i = 0; i < els.length; i++) if (els[i].checked) return els[i].value;
-    return "layer";
+    return "auto";
   }
 
-  function updateScopeStatus(description) {
-    if (!targetStatus) return;
-    if (!description) {
-      var selected = document.querySelector('input[name="scope"]:checked');
-      var selectedLabel = selected && selected.parentNode;
-      description = selectedLabel && selectedLabel.getAttribute("data-description");
-    }
-    targetStatus.textContent = description || "처리 범위를 선택하세요.";
+  function setScopeBadge(element, text, tone) {
+    var allowed = { success: true, error: true, warning: true, neutral: true, checking: true };
+    element.textContent = text;
+    element.className = "scope-state-badge " + (allowed[tone] ? tone : "neutral");
   }
 
-  var scopeControls = document.querySelectorAll('input[name="scope"]');
-  for (var scopeIndex = 0; scopeIndex < scopeControls.length; scopeIndex++) {
-    (function (scopeControl) {
-      var scopeLabel = scopeControl.parentNode;
-      scopeControl.addEventListener("change", function () { updateScopeStatus(); });
-      scopeControl.addEventListener("focus", function () {
-        updateScopeStatus(scopeLabel.getAttribute("data-description"));
-      });
-      scopeControl.addEventListener("blur", function () { updateScopeStatus(); });
-      scopeLabel.addEventListener("mouseenter", function () {
-        updateScopeStatus(scopeLabel.getAttribute("data-description"));
-      });
-      scopeLabel.addEventListener("mouseleave", function () { updateScopeStatus(); });
-    }(scopeControls[scopeIndex]));
+  function renderScopeStatus(parts) {
+    scopeTargetTitle.textContent = parts[1];
+    setScopeBadge(scopeTargetBadge, parts[2], parts[3]);
+    scopeTargetDescription.textContent = parts[4];
+    scopeMaskTitle.textContent = parts[5];
+    setScopeBadge(scopeMaskBadge, parts[6], parts[7]);
+    scopeMaskDescription.textContent = parts[8];
   }
-  updateScopeStatus();
+
+  function renderScopeStatusError(message) {
+    renderScopeStatus([
+      "ERR",
+      "상태 확인 실패", "사용 불가", "error",
+      message || "Photoshop 상태를 확인할 수 없습니다.",
+      "적용 안 함", "확인 불가", "neutral",
+      "Photoshop 문서와 현재 레이어를 다시 확인하세요."
+    ]);
+  }
+
+  function refreshScopeStatus() {
+    if (!scopeTargetTitle || !scopeTargetBadge || !scopeTargetDescription ||
+        !scopeMaskTitle || !scopeMaskBadge || !scopeMaskDescription) return;
+
+    var token = ++scopeStatusToken;
+    setScopeBadge(scopeTargetBadge, "확인 중", "checking");
+    evalPS('BXT_scopeInfo("' + escJs(scopeValue()) + '")', function (err, result) {
+      if (token !== scopeStatusToken) return;
+      if (err || !result) {
+        renderScopeStatusError(err || "응답이 없습니다.");
+        return;
+      }
+
+      var parts = String(result).split("|");
+      if (parts.length < 9 || (parts[0] !== "OK" && parts[0] !== "ERR")) {
+        renderScopeStatusError("처리 범위 상태 응답이 올바르지 않습니다.");
+        return;
+      }
+      renderScopeStatus(parts);
+    });
+  }
+
+  window.addEventListener("focus", refreshScopeStatus);
+  refreshScopeStatus();
 
   function captureSettings() {
     return {
@@ -432,6 +573,7 @@
     discardPhotoshopMask(documentId, maskToken, function (maskError) {
       resetActiveRunState();
       setBusy(false);
+      refreshScopeStatus();
       showError(
         message + cleanupWarning(cleanupFailures || []) +
         (maskError ? "\n\nPhotoshop 임시 마스크 정리 실패:\n" + maskError : "")
@@ -660,14 +802,12 @@
     evalPS('BXT_validateScope("' + escJs(settings.scope) + '")', function (scopeError, scopeResult) {
       if (scopeError || scopeResult !== "OK") {
         setBusy(false);
-        targetStatus.className = "preflight-status scope-hint error";
-        targetStatus.textContent = scopeError || scopeResult || "처리 범위를 확인할 수 없습니다.";
+        refreshScopeStatus();
         showError("Photoshop 처리 범위 확인 실패:\n" + (scopeError || scopeResult || "알 수 없는 오류"));
         return;
       }
 
-      updateScopeStatus();
-      targetStatus.className = "preflight-status scope-hint";
+      refreshScopeStatus();
       setBusy(true, "RC-Astro 확인 중…");
       setProgress(5, "CLI·라이선스·기능 확인 중…");
 
@@ -784,11 +924,12 @@
 
                 resetActiveRunState();
                 setBusy(false);
+                refreshScopeStatus();
                 setProgress(100, "완료");
                 document.getElementById("progressWrap").className = "progress-wrap";
                 showOk(
                   "완료: 원본 문서에 `BlurXTerminator` 레이어를 추가했습니다.\n" +
-                  (settings.scope === "sky" ? "하늘 영역 마스크 적용 · " : "") +
+                  (maskToken ? "지정 영역 마스크 적용 · " : "") +
                   (settings.planetary
                     ? "Lunar / Planetary · PSF " + settings.psfDiameter + " px"
                     : "Stars " + settings.stars + " · Halos " + settings.halos) +
