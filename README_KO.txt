@@ -6,7 +6,7 @@ Windows / Photoshop CEP Panel
 ----
 Photoshop 안에서 AstroWizard처럼:
 
-  Strength 슬라이더 0~1
+  Strength 연동 슬라이더 0~0.7
   → BlurXTerminator 실행
   → RC-Astro Stand-alone CLI 처리
   → 결과를 원본 문서의 새 레이어로 자동 삽입
@@ -270,3 +270,12 @@ Adobe가 장기적으로 UXP를 기본 확장 플랫폼으로 사용하고 있�
 - rc-astro --version 결과
 - rc-astro bxt 실행 여부
 - 패널 오류 메시지
+
+
+라이선스
+--------
+이 Photoshop 패널의 소스 코드는 GNU General Public License v3.0에 따라
+배포됩니다. 자세한 조건은 저장소의 LICENSE 파일을 확인하세요.
+
+RC-Astro Stand-alone CLI, BlurXTerminator 및 Adobe Photoshop은 이 저장소에
+포함되지 않으며, 각 제품의 별도 라이선스와 이용 조건이 적용됩니다.
