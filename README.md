@@ -119,7 +119,6 @@ tests\Run_Photoshop_Integration.ps1
 ## 상세 문서
 
 - [한국어 상세 사용 설명서](README_KO.txt)
-- [개선 및 통합 테스트 기록](IMPROVEMENT_REVIEW.md)
 
 ## 라이선스
 
