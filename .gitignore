@@ -13,6 +13,7 @@ IMPROVEMENT_REVIEW.md
 
 # Generated packages
 *.zip
+*.zip.sha256.txt
 
 # Photoshop integration-test artifacts
 tests/BXT_Integration_Temp.tif
