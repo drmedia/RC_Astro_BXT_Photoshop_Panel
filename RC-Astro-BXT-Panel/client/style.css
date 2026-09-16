@@ -277,3 +277,13 @@ input[type="range"] {
 .panel-version {
   color: #999; margin-top: 4px; font-variant-numeric: tabular-nums;
 }
+
+.language-row { align-items: center; gap: 12px; }
+.language-label { margin-bottom: 0; }
+.language-select {
+  min-width: 145px; padding: 6px 28px 6px 8px;
+  border: 1px solid #555; border-radius: 5px;
+  background: #242424; color: #eee; font: inherit;
+}
+.language-select:focus { outline: 1px solid #1473e6; outline-offset: 1px; }
+.language-select:disabled { opacity: .5; cursor: default; }

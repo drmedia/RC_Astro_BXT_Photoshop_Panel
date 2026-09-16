@@ -1,6 +1,11 @@
 (function () {
   "use strict";
 
+  var i18n = window.BXT_I18N;
+  function tr(text) {
+    return i18n ? i18n.translate(text) : String(text === undefined || text === null ? "" : text);
+  }
+
   var fs, os, path, cp;
   try {
     fs = require("fs");
@@ -28,6 +33,7 @@
   var strengthControl = document.getElementById("strengthControl");
   var resetDetails = document.getElementById("resetDetails");
   var exePath = document.getElementById("exePath");
+  var languageSelect = document.getElementById("languageSelect");
   var runBtn = document.getElementById("runBtn");
   var cancelBtn = document.getElementById("cancelBtn");
   var tempStatus = document.getElementById("tempStatus");
@@ -208,16 +214,16 @@
     detailsPanel.classList.toggle("hidden", !open);
     detailsToggle.classList.toggle("active", open);
     detailsToggle.setAttribute("aria-expanded", open ? "true" : "false");
-    detailsToggleText.textContent = open ? "세부 설정 닫기" : "세부 설정 보기";
+    detailsToggleText.textContent = i18n ? i18n.t(open ? "details.close" : "details.open") : (open ? "세부 설정 닫기" : "세부 설정 보기");
     detailsChevron.textContent = open ? "▴" : "▾";
   }
 
   function setExecutableStatus(message, state, needsAttention) {
-    exeStatus.textContent = message;
+    exeStatus.textContent = tr(message);
     exeStatus.className = "preflight-status" + (state ? " " + state : "");
     if (needsAttention) settingsButton.classList.add("needs-attention");
     else settingsButton.classList.remove("needs-attention");
-    settingsButton.title = needsAttention ? "설정 · RC-Astro 확인 필요" : "설정";
+    settingsButton.title = i18n ? i18n.t(needsAttention ? "settings.attention" : "settings.title") : (needsAttention ? "설정 · RC-Astro 확인 필요" : "설정");
   }
 
   function parseCatalogOutput(stdout) {
@@ -295,7 +301,7 @@
         var selection = window.cep.fs.showOpenDialog(
           false,
           false,
-          "RC-Astro 실행 파일 선택",
+          tr("RC-Astro 실행 파일 선택"),
           initialPath,
           ["exe"]
         );
@@ -366,6 +372,18 @@
     if (saved) exePath.value = saved;
   } catch (_) {}
 
+  if (languageSelect && i18n) {
+    languageSelect.addEventListener("change", function () {
+      i18n.setPreference(languageSelect.value);
+    });
+    i18n.onChange(function () {
+      setDetailsOpen(detailsPanel.className.indexOf("hidden") < 0);
+      refreshTempStatus();
+      refreshScopeStatus();
+      if (settingsCard.className.indexOf("hidden") < 0) validateExecutable();
+    });
+  }
+
   function evalPS(script, cb) {
     if (!window.__adobe_cep__) {
       cb("CEP 인터페이스를 사용할 수 없습니다.");
@@ -386,17 +404,17 @@
 
   function setScopeBadge(element, text, tone) {
     var allowed = { success: true, error: true, warning: true, neutral: true, checking: true };
-    element.textContent = text;
+    element.textContent = tr(text);
     element.className = "scope-state-badge " + (allowed[tone] ? tone : "neutral");
   }
 
   function renderScopeStatus(parts) {
-    scopeTargetTitle.textContent = parts[1];
+    scopeTargetTitle.textContent = tr(parts[1]);
     setScopeBadge(scopeTargetBadge, parts[2], parts[3]);
-    scopeTargetDescription.textContent = parts[4];
-    scopeMaskTitle.textContent = parts[5];
+    scopeTargetDescription.textContent = tr(parts[4]);
+    scopeMaskTitle.textContent = tr(parts[5]);
     setScopeBadge(scopeMaskBadge, parts[6], parts[7]);
-    scopeMaskDescription.textContent = parts[8];
+    scopeMaskDescription.textContent = tr(parts[8]);
   }
 
   function renderScopeStatusError(message) {
@@ -447,7 +465,7 @@
   }
 
   function lockAllControls() {
-    var controls = document.querySelectorAll("input, button");
+    var controls = document.querySelectorAll("input, button, select");
     lockedControls = [];
     for (var i = 0; i < controls.length; i++) {
       lockedControls.push({ element: controls[i], disabled: controls[i].disabled });
@@ -467,7 +485,7 @@
     if (!busy && busyState) unlockAllControls();
     busyState = busy;
     runBtn.disabled = busy;
-    document.getElementById("runText").textContent = text || (busy ? "처리 중…" : "BlurXTerminator 실행");
+    document.getElementById("runText").textContent = tr(text || (busy ? "처리 중…" : "BlurXTerminator 실행"));
     document.getElementById("progressWrap").className = busy ? "progress-wrap" : "progress-wrap hidden";
   }
 
@@ -488,18 +506,18 @@
 
   function setProgress(p, text) {
     document.getElementById("progressBar").style.width = p + "%";
-    document.getElementById("status").textContent = text || "";
+    document.getElementById("status").textContent = tr(text || "");
   }
 
   function showError(msg) {
     var el = document.getElementById("message");
     el.className = "message error";
-    el.textContent = msg;
+    el.textContent = tr(msg);
   }
   function showOk(msg) {
     var el = document.getElementById("message");
     el.className = "message ok";
-    el.textContent = msg;
+    el.textContent = tr(msg);
   }
   function clearMsg() {
     var el = document.getElementById("message");
@@ -634,7 +652,7 @@
     var files = generatedTempFiles();
     var total = 0;
     for (var i = 0; i < files.length; i++) total += files[i].size;
-    tempStatus.textContent = files.length + "개 · " + formatBytes(total);
+    tempStatus.textContent = i18n ? i18n.t("temp.summary", { count: files.length, size: formatBytes(total) }) : files.length + "개 · " + formatBytes(total);
   }
 
   cleanupTempBtn.addEventListener("click", function () {
