@@ -5,7 +5,7 @@
 RC-Astro Stand-alone CLI의 BlurXTerminator를 Adobe Photoshop에서 실행하고,
 처리 결과를 원본 문서의 새 레이어로 가져오는 Windows용 CEP 패널입니다.
 
-현재 버전: **v0.9.2**
+현재 버전: **v0.9.3**
 
 > 이 저장소에는 RC-Astro CLI, BlurXTerminator 모델 또는 제품 라이선스가
 > 포함되어 있지 않습니다. 사용자가 별도로 설치하고 활성화해야 합니다.
@@ -54,6 +54,19 @@ RC-Astro Stand-alone CLI의 BlurXTerminator를 Adobe Photoshop에서 실행하�
 - 실행 취소와 성공·실패·패널 종료 시 임시 TIFF 정리
 - 패널 내부 빠른 사용 설명서와 오류 해결 안내
 - 시스템 언어 자동 감지와 한국어·영어 UI 전환
+
+## 구조
+
+처리 규칙과 현재 Photoshop 실행 환경을 다음과 같이 분리했습니다.
+
+- `client/shared`: BXT 명령 생성, 서비스 계약과 처리 워크플로
+- `client/platform/cep`: Photoshop, Node.js 프로세스, 임시 파일과 설정 저장을
+  담당하는 현재 CEP 구현
+- `client/ui`: 패널 화면과 앱·처리 설정
+- `client/main.js`: 의존성 조립과 초기화만 담당
+
+현재 배포판은 CEP 패널을 그대로 유지합니다. 향후 `platform/uxp` 어댑터와
+RC-Astro CLI 실행용 로컬 helper를 추가하면 공통 워크플로를 재사용할 수 있습니다.
 
 ## 요구 사항
 
@@ -154,6 +167,13 @@ Photoshop 27.8.0에서 문서 ID, 색상 모드·비트 심도 복원, 현재 �
 
 ```text
 tests\Run_Photoshop_Integration.ps1
+```
+
+클라이언트 모듈과 CEP 초기화 스모크 테스트:
+
+```text
+node tests\client-bootstrap-smoke.js
+node tests\client-modules-smoke.js
 ```
 
 다국어 스모크 테스트:

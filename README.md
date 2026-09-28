@@ -4,7 +4,7 @@
 
 A Windows CEP panel that runs BlurXTerminator through the RC-Astro Stand-alone CLI in Adobe Photoshop and imports the result as a new layer.
 
-Current version: **v0.9.2**
+Current version: **v0.9.3**
 
 > RC-Astro CLI, BlurXTerminator models, and product licenses are not included. Install and activate them separately.
 
@@ -41,6 +41,19 @@ Current version: **v0.9.2**
 - Supports cancellation and automatic temporary TIFF cleanup
 - Provides in-panel help and troubleshooting
 - Detects the system language and supports Korean and English UI
+
+## Architecture
+
+The panel keeps processing rules separate from the current Photoshop runtime:
+
+- `client/shared`: BXT command construction, service contracts, and processing workflow
+- `client/platform/cep`: current CEP implementations for Photoshop, Node.js processes,
+  temporary files, and persisted settings
+- `client/ui`: panel views and application/processing settings
+- `client/main.js`: dependency assembly and startup only
+
+The current release remains a CEP panel. A future UXP version can reuse the shared
+workflow by adding `platform/uxp` adapters and a local helper for RC-Astro CLI execution.
 
 ## Requirements
 
@@ -132,6 +145,8 @@ The panel passed 14 integration tests on Photoshop 27.8.0, including document id
 
 ```text
 tests\Run_Photoshop_Integration.ps1
+node tests\client-bootstrap-smoke.js
+node tests\client-modules-smoke.js
 node tests\i18n-smoke.js
 powershell -NoProfile -ExecutionPolicy Bypass -File .\tests\Test_Installer_Languages.ps1
 ```

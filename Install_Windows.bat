@@ -111,7 +111,7 @@ if errorlevel 1 (
 )
 
 set "COPY_FAILED="
-for %%F in ("CSXS\manifest.xml" "client\index.html" "client\style.css" "client\i18n.js" "client\main.js" "host\host.jsx") do (
+for %%F in ("CSXS\manifest.xml" "client\index.html" "client\style.css" "client\i18n.js" "client\shared\contracts.js" "client\shared\bxt-command.js" "client\shared\workflow.js" "client\platform\cep\filesystem-adapter.js" "client\platform\cep\process-adapter.js" "client\platform\cep\photoshop-adapter.js" "client\platform\cep\settings-store.js" "client\ui\processing-settings.js" "client\ui\panel-view.js" "client\ui\app-settings.js" "client\main.js" "host\host.jsx") do (
     call :verify_file "%%~F"
     if errorlevel 1 set "COPY_FAILED=1"
 )
